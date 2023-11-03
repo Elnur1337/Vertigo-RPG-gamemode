@@ -19,3 +19,11 @@ main()
 	printf(" ");
 }
 
+forward GetCharFromPlayerNameAt(playerid, index);
+public GetCharFromPlayerNameAt(playerid, index)
+{
+	new name[24];
+	GetPlayerName(playerid, name, 24);
+	return name[index];
+
+}

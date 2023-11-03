@@ -1855,6 +1855,15 @@
 			<stacksize value="1"/>
 			<library>time</library>  <summary>A timer event occurred.</summary>  <remarks>  This function executes after the configured delay or interval expires.  See <c>settimer</c> to  set the delay or interval.  Depending on the timing precision of the host, the call may occur  later than the delay that was set.  <p/>  If the timer was set as a "single-shot", it must be ex plicitly set again for a next execution  for the <c>@timer</c>function.  If the timer is set to be repetitive, <c>@timer</c> will continue  to be called with the set interval until it is disabled with another call to <c>settimer</c>.  </remarks>  <returns>The return value of this function is currently ignored.</returns> 
 		</member>
+		<member name="M:GetCharFromPlayerNameAt" syntax="GetCharFromPlayerNameAt(playerid, index)">
+			<attribute name="public"/>
+			<stacksize value="29"/>
+			<dependency name="GetPlayerName"/>
+			<param name="playerid">
+			</param>
+			<param name="index">
+			</param>
+		</member>
 		<member name="M:GetPlayerLastSyncedTrailerID" syntax="GetPlayerLastSyncedTrailerID(playerid)">
 			<stacksize value="1"/>
 			<param name="playerid">
@@ -1866,6 +1875,22 @@
 			<param name="playerid">
 			</param>
 			<library>omp_vehicle</library> 
+		</member>
+		<member name="M:GetPlayerName" syntax="GetPlayerName(playerid, name[], len)">
+			<tagname value="bool"/>
+			<attribute name="native"/>
+			<referrer name="GetCharFromPlayerNameAt"/>
+			<param name="playerid">
+				The ID of the player to get the name of
+			</param>
+			<param name="name">
+				<paraminfo> [] </paraminfo>
+				An array into which to store the name, passed by reference
+			</param>
+			<param name="len">
+				The length of the string that should be stored.  Recommended to be <b><c>MAX_PLAYER_NAME</c></b>
+			</param>
+			<library>omp_player</library>  <summary>Get a player's name.</summary>        <seealso name="SetPlayerName" />  <seealso name="GetPlayerIp" />  <seealso name="GetPlayerPing" />  <seealso name="GetPlayerScore" />  <seealso name="GetPlayerVersion" />  <remarks>A player's name can be up to 24 characters long (as of <b>0.3d R2</b>) by using <a href="#SetPlayerName">SetPlayerName</a>.  This is defined as <b><c>24</c></b> by default.  However, the client can  only join with a nickname between 3 and 20 characters, otherwise the connection will be rejected  and the player has to quit to choose a valid name.</remarks>  <returns>The length of the player's name. <b><c>0</c></b> if player specified doesn't exist.</returns> 
 		</member>
 		<member name="M:GetServerRuleFlags" syntax="GetServerRuleFlags(rule[])">
 			<tagname value="E_SERVER_RULE_FLAGS"/>

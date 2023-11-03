@@ -1,6 +1,14 @@
 const samp = require("samp-node-lib");
 
+const registerDialogPass = 0;
+
 let RegisterTextDraws = [];
+
+let registerInfo = {
+    nickname: "",
+    password: "",
+    email: ""
+}
 
 samp.OnGameModeInit(() => { 
     samp.AddPlayerClass(0, 2095.5671, 1433.1622, 10.8203, 92.4388, 0, 0, 0, 0, 0, 0);
@@ -180,6 +188,7 @@ samp.OnGameModeInit(() => {
 });
 
 samp.OnPlayerConnect((playerid) => {
+    console.log(GetPlayerNameString(playerid));
     return true;
 })
 
@@ -205,11 +214,29 @@ samp.OnPlayerSpawn((playerid) => {
 });
 
 samp.OnPlayerClickTextDraw((playerid, clickedid) => {
-    console.log("TD Click TEST");
-    if(clickedid === RegisterTextDraws[3].TextDraw) {
-        console.log("TD Click");
-    } else {
-        console.log("Neuspjesno");
+    if (clickedid === RegisterTextDraws[3].TextDraw) {
+        playerid.ShowPlayerDialog(registerDialogPass, samp.DIALOG_STYLE.PASSWORD, "Sifra", "Ovdje unesite vasu sifru", "Unesi", "Izlaz");
     }
     return 0;
 });
+samp.OnDialogResponse((playerid, dialogid, response, listitem, inputtext) => {
+    switch (dialogid) {
+        case registerDialogPass:
+            registerInfo.password = inputtext;
+            console.log(registerInfo.password);
+            break;
+    
+        default:
+            break;
+    }
+});
+
+const GetPlayerNameString = (playerid) => {
+    let char = 1;
+    let playerName = "";
+    for (let i = 0; char != 0; i++) {
+        char = samp.callPublic('GetCharFromPlayerNameAt', 'ii', playerid, i);
+        playerName += String.fromCharCode(char);
+    }
+    return playerName;
+}
