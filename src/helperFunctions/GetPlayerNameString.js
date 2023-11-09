@@ -8,4 +8,4 @@ const GetPlayerNameString = (playerid) => {
     return playerName;
 }
 
-module.exports = {GetPlayerNameString};
+module.exports = GetPlayerNameString;

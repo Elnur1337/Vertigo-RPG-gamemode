@@ -1,10 +1,13 @@
 const samp = require("samp-node-lib");
 
+const hash = require("md5");
+
 //TextDrawLoaders
 const {RegisterTextDrawsLoader} = require("./TextDrawsLoaders/RegisterTextDraws");
 
 //Helper Functions
-const {GetPlayerNameString} = require("./helperFunctions/GetPlayerNameString");
+const GetPlayerNameString = require("./helperFunctions/GetPlayerNameString");
+const registerPlayer = require("./helperFunctions/registerPlayer");
 
 //Variables
 const { registerDialogPass, registerDialogEmail, registerDialogPol, registerDialogGodine, registerDialogDrzava } = require("./dialogs");
@@ -12,16 +15,7 @@ const { registerDialogPass, registerDialogEmail, registerDialogPol, registerDial
 //TextDraws
 let RegisterTextDraws = [];
 
-let playerInfo = {
-    name: "",
-    password: "",
-    email: "",
-    pol: '',
-    godine: 0,
-    drzava: "",
-    isRegistered: false,
-    isLoggedIn: false
-}
+let players = [];
 
 samp.OnGameModeInit(() => { 
     samp.AddPlayerClass(0, 2095.5671, 1433.1622, 10.8203, 92.4388, 0, 0, 0, 0, 0, 0);
@@ -33,8 +27,19 @@ samp.OnGameModeInit(() => {
 });
 
 samp.OnPlayerConnect((playerid) => {
-    playerInfo.name = GetPlayerNameString(playerid);   
-    console.log(playerInfo.name); 
+    players[playerid] = {
+        nickname: "",
+        pass: "",
+        email: "",
+        pol: '',
+        godine: 0,
+        drzava: 0,
+        isRegistered: false,
+        isLoggedIn: false
+    };
+    
+    players[playerid].nickname = GetPlayerNameString(playerid);
+    console.log(players[playerid]);
     return true;
 })
 
@@ -53,11 +58,11 @@ samp.OnPlayerRequestClass((playerid) => {
 });
 
 samp.OnPlayerSpawn((playerid) => {
-    if (!playerInfo.isRegistered) {
+    if (!players[playerid].isRegistered) {
         samp.SendClientMessage(playerid, "#A30300", "[KICK] {FFFFFF}Niste se registrovali!");
         setTimeout(() => {playerid.Kick();}, 10);
     }
-    if (playerInfo.isRegistered && !playerInfo.isLoggedIn) {
+    if (players[playerid].isRegistered && !players[playerid].isLoggedIn) {
         samp.SendClientMessage(playerid, "#A30300", "[KICK] {FFFFFF}Niste se ulogovali!");
         setTimeout(() => {playerid.Kick();}, 10);
     }
@@ -83,6 +88,14 @@ samp.OnPlayerClickTextDraw((playerid, clickedid) => {
             playerid.ShowPlayerDialog(registerDialogDrzava, samp.DIALOG_STYLE.LIST, "Drzava", "Bosna i Hercegovina\nHrvatska\nCrna gora\nKosovo\nSrbija", "Odaberi", "Izlaz");
             break;
         case RegisterTextDraws[8].TextDraw:
+            registerPlayer(players[playerid]);
+            players[playerid].isRegistered = true;
+            players[playerid].isLoggedIn = true;
+
+            RegisterTextDraws.forEach((TextDrawObject) => {
+                samp.TextDrawHideForPlayer(playerid, TextDrawObject.TextDraw);
+            });
+
             playerid.SpawnPlayer();
             break;
         case RegisterTextDraws[9].TextDraw:
@@ -97,11 +110,11 @@ samp.OnDialogResponse((playerid, dialogid, response, listitem, inputtext) => {
     switch (dialogid) {
         case registerDialogPass:
             if (response) {
-                if (inputtext.length < 7) {
-                    samp.SendClientMessage(playerid, "#2F7D32", "[Vertigo RPG] {FFFFFF}Sifra mora sadrzavati najmanje 8 karaktera!");
+                if (inputtext.length < 8 || inputtext > 24) {
+                    samp.SendClientMessage(playerid, "#2F7D32", "[Vertigo RPG] {FFFFFF}Sifra mora sadrzavati najmanje 8 karaktera, a najvise 24!");
                 } else {
-                    playerInfo.password = inputtext;
-                    samp.TextDrawSetString(RegisterTextDraws[3].TextDraw, 'x'.repeat(playerInfo.password.length));
+                    players[playerid].pass = hash(inputtext);
+                    samp.TextDrawSetString(RegisterTextDraws[3].TextDraw, 'x'.repeat(inputtext.length));
                 }
             }
             break;
@@ -110,7 +123,7 @@ samp.OnDialogResponse((playerid, dialogid, response, listitem, inputtext) => {
                 if (!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(inputtext))) {
                     samp.SendClientMessage(playerid, "#2F7D32", "[Vertigo RPG] {FFFFFF}Uneseni email nije validan!");
                 } else {
-                    playerInfo.email = inputtext;
+                    players[playerid].email = inputtext;
                     samp.TextDrawLetterSize(RegisterTextDraws[4].TextDraw, 0.17, 0.68);
                     samp.TextDrawSetString(RegisterTextDraws[4].TextDraw, inputtext);
                 }
@@ -118,10 +131,10 @@ samp.OnDialogResponse((playerid, dialogid, response, listitem, inputtext) => {
             break;
         case registerDialogPol:
                 if (response) {
-                    playerInfo.pol = "Musko";
+                    players[playerid].pol = "M";
                     samp.TextDrawSetString(RegisterTextDraws[5].TextDraw, 'Musko');
                 } else {
-                    playerInfo.pol = "Zensko";
+                    players[playerid].pol = "F";
                     samp.TextDrawSetString(RegisterTextDraws[5].TextDraw, 'Zensko');
                 }
             break;
@@ -132,7 +145,7 @@ samp.OnDialogResponse((playerid, dialogid, response, listitem, inputtext) => {
                 } else if (+inputtext < 10 || +inputtext > 80) {
                     samp.SendClientMessage(playerid, "#2F7D32", "[Vertigo RPG] {FFFFFF}Ne mozete unijeti broj manji od 10 i veci od 80!");
                 } else {
-                    playerInfo.godine = +inputtext;
+                    players[playerid].godine = +inputtext;
                     samp.TextDrawSetString(RegisterTextDraws[6].TextDraw, inputtext);
                 }
             }
@@ -159,7 +172,7 @@ samp.OnDialogResponse((playerid, dialogid, response, listitem, inputtext) => {
                     default:
                         break;
                 }
-                playerInfo.drzava = drzava;
+                players[playerid].drzava = ++listitem;
                 samp.TextDrawSetString(RegisterTextDraws[7].TextDraw, drzava);
             }
             break;
