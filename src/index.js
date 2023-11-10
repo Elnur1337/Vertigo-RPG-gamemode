@@ -2,24 +2,32 @@ const samp = require("samp-node-lib");
 
 const hash = require("md5");
 
+const database = require("./databaseFunctions/dbConfig");
+
 //TextDrawLoaders
 const {RegisterTextDrawsLoader} = require("./TextDrawsLoaders/RegisterTextDraws");
 
 //Helper Functions
 const GetPlayerNameString = require("./helperFunctions/GetPlayerNameString");
-const registerPlayer = require("./helperFunctions/registerPlayer");
 
-//Variables
-const { registerDialogPass, registerDialogEmail, registerDialogPol, registerDialogGodine, registerDialogDrzava } = require("./dialogs");
+//Dialogs
+const {
+    registerDialogPass,
+    registerDialogEmail,
+    registerDialogPol,
+    registerDialogGodine,
+    registerDialogDrzava,
+    loginDialog } = require("./dialogs");
 
 //TextDraws
 let RegisterTextDraws = [];
 
+//PlayersInfo
 let players = [];
 
 samp.OnGameModeInit(() => { 
     samp.AddPlayerClass(0, 2095.5671, 1433.1622, 10.8203, 92.4388, 0, 0, 0, 0, 0, 0);
-    samp.AddStaticVehicle(522, 2095.5671, 1433.1622, 11.8203, 270.8069, -1, -1);
+    samp.AddStaticVehicle(579, 2095.5671, 1433.1622, 11.8203, 270.8069, -1, -1);
     
     RegisterTextDrawsLoader(RegisterTextDraws);
 
@@ -34,24 +42,45 @@ samp.OnPlayerConnect((playerid) => {
         pol: '',
         godine: 0,
         drzava: 0,
+        wrongPassRepeat: 0,
         isRegistered: false,
         isLoggedIn: false
     };
-    
+
     players[playerid].nickname = GetPlayerNameString(playerid);
-    console.log(players[playerid]);
+    const query = "SELECT email, pol, godine, selectedCountryId FROM players WHERE nickname = ?";
+    database.query(query, [players[playerid].nickname], (err, res) => {
+        if (res[0]) {
+            players[playerid].email = res[0].email;
+            players[playerid].pol = res[0].pol;
+            players[playerid].godine = res[0].godine;
+            players[playerid].drzava = res[0].selectedCountryId;
+            players[playerid].isRegistered = true;
+        }
+    });
     return true;
 })
 
 samp.OnPlayerRequestClass((playerid) => {
-    RegisterTextDraws.forEach((TextDrawObject) => {
-        samp.TextDrawShowForPlayer(playerid, TextDrawObject.TextDraw);
-    });
-    samp.SelectTextDraw(playerid, "#2F7D32");
+    if (players[playerid].isRegistered) {
+        playerid.ShowPlayerDialog(loginDialog, samp.DIALOG_STYLE.PASSWORD, "Log in", `Dobrodosao ${players[playerid].nickname} na server!\nMolimo ukucajte vasu sifru`, "Unesi", "Izlaz");
+    } else {
+        //Clear TextDraws
+        samp.TextDrawSetString(RegisterTextDraws[3].TextDraw, "Password");
+        samp.TextDrawSetString(RegisterTextDraws[4].TextDraw, "Email");
+        samp.TextDrawSetString(RegisterTextDraws[5].TextDraw, "Pol");
+        samp.TextDrawSetString(RegisterTextDraws[6].TextDraw, "Godine");
+        samp.TextDrawSetString(RegisterTextDraws[7].TextDraw, "Drzava");
+
+        RegisterTextDraws.forEach((TextDrawObject) => {
+            samp.TextDrawShowForPlayer(playerid, TextDrawObject.TextDraw);
+        });
+        samp.SelectTextDraw(playerid, "#2F7D32");
+    }
     
     
     
-    samp.SetPlayerPos(playerid, 2095.5671, 1433.1622, 10.8203);
+    samp.SetPlayerPos(playerid, 2085.5671, 1433.1622, 10.8203);
 	samp.SetPlayerFacingAngle(playerid, 210.8861);
 	samp.SetPlayerInterior(playerid, 0);
 	return true;
@@ -88,14 +117,26 @@ samp.OnPlayerClickTextDraw((playerid, clickedid) => {
             playerid.ShowPlayerDialog(registerDialogDrzava, samp.DIALOG_STYLE.LIST, "Drzava", "Bosna i Hercegovina\nHrvatska\nCrna gora\nKosovo\nSrbija", "Odaberi", "Izlaz");
             break;
         case RegisterTextDraws[8].TextDraw:
-            registerPlayer(players[playerid]);
+            //Dodati verifikaciju podataka
+            try {
+                const {nickname, pass, email, pol, godine, drzava} = players[playerid];
+                const query = "INSERT INTO players(nickname, pass, email, pol, godine, selectedCountryId, createdAtCountryId) VALUES (?, ?, ?, ?, ?, ?, ?)"
+                database.query(query, [nickname, pass, email, pol, godine, drzava, drzava], (err, res) => {
+                    if (err) {
+                        console.log(err);
+                    }
+                    console.log(res);
+                })
+            } catch (err) {
+                console.log(err);
+            }
             players[playerid].isRegistered = true;
             players[playerid].isLoggedIn = true;
 
             RegisterTextDraws.forEach((TextDrawObject) => {
                 samp.TextDrawHideForPlayer(playerid, TextDrawObject.TextDraw);
             });
-
+            samp.CancelSelectTextDraw(playerid);
             playerid.SpawnPlayer();
             break;
         case RegisterTextDraws[9].TextDraw:
@@ -124,7 +165,6 @@ samp.OnDialogResponse((playerid, dialogid, response, listitem, inputtext) => {
                     samp.SendClientMessage(playerid, "#2F7D32", "[Vertigo RPG] {FFFFFF}Uneseni email nije validan!");
                 } else {
                     players[playerid].email = inputtext;
-                    samp.TextDrawLetterSize(RegisterTextDraws[4].TextDraw, 0.17, 0.68);
                     samp.TextDrawSetString(RegisterTextDraws[4].TextDraw, inputtext);
                 }
             }
@@ -176,7 +216,49 @@ samp.OnDialogResponse((playerid, dialogid, response, listitem, inputtext) => {
                 samp.TextDrawSetString(RegisterTextDraws[7].TextDraw, drzava);
             }
             break;
+        case loginDialog:
+            if (!response) {
+                samp.SendClientMessage(playerid, "#A30300", "[KICK] {FFFFFF}Niste se ulogovali!");
+                setTimeout(() => {playerid.Kick();}, 10);
+            } else {
+                try {
+                    const query = "SELECT pass FROM players WHERE pass = ?";
+                    database.query(query, [hash(inputtext)], (err, res) => {
+                        if (err) {
+                            console.log(err);
+                        }
+                        if (res[0]) {
+                            players[playerid].isLoggedIn = true;
+                            playerid.SpawnPlayer();        
+                        } else {
+                            samp.SendClientMessage(playerid, "#2F7D32", "[Vertigo RPG] {FFFFFF}Pogresna sifra, molimo pokusajte ponovo!");
+                            playerid.ShowPlayerDialog(loginDialog, samp.DIALOG_STYLE.PASSWORD, "Log in", `Dobrodosao ${players[playerid].nickname} na server!\nMolimo ukucajte vasu sifru`, "Unesi", "Izlaz");
+                            ++(players[playerid].wrongPassRepeat);
+                            if (players[playerid].wrongPassRepeat >= 4) {
+                                samp.SendClientMessage(playerid, "#A30300", "[KICK] {FFFFFF}Pogrijesili ste sifru cetiri puta!");
+                                setTimeout(() => {playerid.Kick();}, 10);
+                            }
+                        }
+                    });
+                } catch (err) {
+                    console.log(err);
+                }
+            }
+            break;
         default:
             break;
     }
+});
+
+samp.OnPlayerDisconnect((playerid, reason) => {
+    players[playerid] = {
+        nickname: "",
+        pass: "",
+        email: "",
+        pol: '',
+        godine: 0,
+        drzava: 0,
+        isRegistered: false,
+        isLoggedIn: false
+    };
 });
