@@ -17,7 +17,16 @@ const {
     registerDialogPol,
     registerDialogGodine,
     registerDialogDrzava,
-    loginDialog } = require("./dialogs");
+    loginDialog } = require("./variables/dialogs");
+
+//Colors
+const {
+    darkGreen,
+    darkRed,
+    whiteWithoutHash,
+    darkGreenWithoutHash,
+    dialogDefaultColorWithoutHash
+} = require("./variables/colors");
 
 //TextDraws
 let RegisterTextDraws = [];
@@ -48,6 +57,8 @@ samp.OnPlayerConnect((playerid) => {
     };
 
     players[playerid].nickname = GetPlayerNameString(playerid);
+    players[playerid].nickname = players[playerid].nickname.substring(0, players[playerid].nickname.length - 1);
+    console.log(players[playerid].nickname);
     const query = "SELECT email, pol, godine, selectedCountryId FROM players WHERE nickname = ?";
     database.query(query, [players[playerid].nickname], (err, res) => {
         if (res[0]) {
@@ -63,7 +74,7 @@ samp.OnPlayerConnect((playerid) => {
 
 samp.OnPlayerRequestClass((playerid) => {
     if (players[playerid].isRegistered) {
-        playerid.ShowPlayerDialog(loginDialog, samp.DIALOG_STYLE.PASSWORD, "Log in", `Dobrodosao ${players[playerid].nickname} na server!\nMolimo ukucajte vasu sifru`, "Unesi", "Izlaz");
+        playerid.ShowPlayerDialog(loginDialog, samp.DIALOG_STYLE.PASSWORD, "Log in", `Dobrodosao {${whiteWithoutHash}}${players[playerid].nickname} {${dialogDefaultColorWithoutHash}}na {${darkGreenWithoutHash}}Vertigo RPG!\n{${dialogDefaultColorWithoutHash}}Molimo ukucajte vasu sifru`, "Unesi", "Izlaz");
     } else {
         //Clear TextDraws
         samp.TextDrawSetString(RegisterTextDraws[3].TextDraw, "Password");
@@ -75,7 +86,7 @@ samp.OnPlayerRequestClass((playerid) => {
         RegisterTextDraws.forEach((TextDrawObject) => {
             samp.TextDrawShowForPlayer(playerid, TextDrawObject.TextDraw);
         });
-        samp.SelectTextDraw(playerid, "#2F7D32");
+        samp.SelectTextDraw(playerid, darkGreen);
     }
     
     
@@ -88,11 +99,11 @@ samp.OnPlayerRequestClass((playerid) => {
 
 samp.OnPlayerSpawn((playerid) => {
     if (!players[playerid].isRegistered) {
-        samp.SendClientMessage(playerid, "#A30300", "[KICK] {FFFFFF}Niste se registrovali!");
+        samp.SendClientMessage(playerid, darkRed, `[KICK] {${whiteWithoutHash}}Niste se registrovali!`);
         setTimeout(() => {playerid.Kick();}, 10);
     }
     if (players[playerid].isRegistered && !players[playerid].isLoggedIn) {
-        samp.SendClientMessage(playerid, "#A30300", "[KICK] {FFFFFF}Niste se ulogovali!");
+        samp.SendClientMessage(playerid, darkRed, `[KICK] {${whiteWithoutHash}}Niste se ulogovali!`);
         setTimeout(() => {playerid.Kick();}, 10);
     }
     
@@ -152,7 +163,7 @@ samp.OnDialogResponse((playerid, dialogid, response, listitem, inputtext) => {
         case registerDialogPass:
             if (response) {
                 if (inputtext.length < 8 || inputtext > 24) {
-                    samp.SendClientMessage(playerid, "#2F7D32", "[Vertigo RPG] {FFFFFF}Sifra mora sadrzavati najmanje 8 karaktera, a najvise 24!");
+                    samp.SendClientMessage(playerid, darkGreen, `[Vertigo RPG] {${whiteWithoutHash}}Sifra mora sadrzavati najmanje 8 karaktera, a najvise 24!`);
                 } else {
                     players[playerid].pass = hash(inputtext);
                     samp.TextDrawSetString(RegisterTextDraws[3].TextDraw, 'x'.repeat(inputtext.length));
@@ -162,7 +173,7 @@ samp.OnDialogResponse((playerid, dialogid, response, listitem, inputtext) => {
         case registerDialogEmail:
             if (response) {
                 if (!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(inputtext))) {
-                    samp.SendClientMessage(playerid, "#2F7D32", "[Vertigo RPG] {FFFFFF}Uneseni email nije validan!");
+                    samp.SendClientMessage(playerid, darkGreen, `[Vertigo RPG] {${whiteWithoutHash}}Uneseni email nije validan!`);
                 } else {
                     players[playerid].email = inputtext;
                     samp.TextDrawSetString(RegisterTextDraws[4].TextDraw, inputtext);
@@ -181,9 +192,9 @@ samp.OnDialogResponse((playerid, dialogid, response, listitem, inputtext) => {
         case registerDialogGodine:
             if (response) {
                 if (!(+inputtext)) {
-                    samp.SendClientMessage(playerid, "#2F7D32", "[Vertigo RPG] {FFFFFF}Niste unijeli broj!");
+                    samp.SendClientMessage(playerid, darkGreen, `[Vertigo RPG] {${whiteWithoutHash}}Niste unijeli broj!`);
                 } else if (+inputtext < 10 || +inputtext > 80) {
-                    samp.SendClientMessage(playerid, "#2F7D32", "[Vertigo RPG] {FFFFFF}Ne mozete unijeti broj manji od 10 i veci od 80!");
+                    samp.SendClientMessage(playerid, darkGreen, `[Vertigo RPG] {${whiteWithoutHash}}Ne mozete unijeti broj manji od 10 i veci od 80!`);
                 } else {
                     players[playerid].godine = +inputtext;
                     samp.TextDrawSetString(RegisterTextDraws[6].TextDraw, inputtext);
@@ -218,7 +229,7 @@ samp.OnDialogResponse((playerid, dialogid, response, listitem, inputtext) => {
             break;
         case loginDialog:
             if (!response) {
-                samp.SendClientMessage(playerid, "#A30300", "[KICK] {FFFFFF}Niste se ulogovali!");
+                samp.SendClientMessage(playerid, darkRed, `[KICK] {${whiteWithoutHash}}Niste se ulogovali!`);
                 setTimeout(() => {playerid.Kick();}, 10);
             } else {
                 try {
@@ -231,11 +242,11 @@ samp.OnDialogResponse((playerid, dialogid, response, listitem, inputtext) => {
                             players[playerid].isLoggedIn = true;
                             playerid.SpawnPlayer();        
                         } else {
-                            samp.SendClientMessage(playerid, "#2F7D32", "[Vertigo RPG] {FFFFFF}Pogresna sifra, molimo pokusajte ponovo!");
-                            playerid.ShowPlayerDialog(loginDialog, samp.DIALOG_STYLE.PASSWORD, "Log in", `Dobrodosao ${players[playerid].nickname} na server!\nMolimo ukucajte vasu sifru`, "Unesi", "Izlaz");
+                            samp.SendClientMessage(playerid, darkGreen, `[Vertigo RPG] {${whiteWithoutHash}}Pogresna sifra, molimo pokusajte ponovo!`);
+                            playerid.ShowPlayerDialog(loginDialog, samp.DIALOG_STYLE.PASSWORD, "Log in", `Dobrodosao {${whiteWithoutHash}}${players[playerid].nickname} {${dialogDefaultColorWithoutHash}}na {${darkGreenWithoutHash}}Vertigo RPG!\n{${dialogDefaultColorWithoutHash}}Molimo ukucajte vasu sifru`, "Unesi", "Izlaz");
                             ++(players[playerid].wrongPassRepeat);
                             if (players[playerid].wrongPassRepeat >= 4) {
-                                samp.SendClientMessage(playerid, "#A30300", "[KICK] {FFFFFF}Pogrijesili ste sifru cetiri puta!");
+                                samp.SendClientMessage(playerid, darkRed, `[KICK] {${whiteWithoutHash}}Pogrijesili ste sifru cetiri puta!`);
                                 setTimeout(() => {playerid.Kick();}, 10);
                             }
                         }
