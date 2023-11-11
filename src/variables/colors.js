@@ -9,6 +9,7 @@ const dialogDefaultColorWithoutHash = dialogDefaultColor.slice(1);
 module.exports = {
     darkGreen,
     darkRed,
+    white,
     whiteWithoutHash,
     darkGreenWithoutHash,
     dialogDefaultColorWithoutHash,

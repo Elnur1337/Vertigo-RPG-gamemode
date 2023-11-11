@@ -23,6 +23,7 @@ const {
 const {
     darkGreen,
     darkRed,
+    white,
     whiteWithoutHash,
     darkGreenWithoutHash,
     dialogDefaultColorWithoutHash
@@ -35,8 +36,9 @@ let RegisterTextDraws = [];
 let players = [];
 
 samp.OnGameModeInit(() => { 
-    samp.AddPlayerClass(0, 2095.5671, 1433.1622, 10.8203, 92.4388, 0, 0, 0, 0, 0, 0);
-    samp.AddStaticVehicle(579, 2095.5671, 1433.1622, 11.8203, 270.8069, -1, -1);
+    // samp.AddPlayerClass(0, 2095.5671, 1433.1622, 10.8203, 92.4388, 0, 0, 0, 0, 0, 0);
+    samp.AddPlayerClass(294, 401.5687, -1536.4258, 32.2734, 223.7568, 0, 0, 0, 0, 0, 0); 
+    samp.AddStaticVehicle(579, 401.5687, -1536.4258, 32.2734, 223.7568, -1, -1);
     
     RegisterTextDrawsLoader(RegisterTextDraws);
 
@@ -59,16 +61,21 @@ samp.OnPlayerConnect((playerid) => {
     players[playerid].nickname = GetPlayerNameString(playerid);
     players[playerid].nickname = players[playerid].nickname.substring(0, players[playerid].nickname.length - 1);
     console.log(players[playerid].nickname);
-    const query = "SELECT email, pol, godine, selectedCountryId FROM players WHERE nickname = ?";
-    database.query(query, [players[playerid].nickname], (err, res) => {
-        if (res[0]) {
-            players[playerid].email = res[0].email;
-            players[playerid].pol = res[0].pol;
-            players[playerid].godine = res[0].godine;
-            players[playerid].drzava = res[0].selectedCountryId;
-            players[playerid].isRegistered = true;
-        }
-    });
+    try {
+        const query = "SELECT id FROM players WHERE nickname = ?";
+        database.query(query, [players[playerid].nickname], (err, res) => {
+            if (err) {
+                samp.SendClientMessage(playerid, darkRed, `[KICK] {${whiteWithoutHash}}Greska sa bazom podataka, molimo pokusajte kasnije!`);
+                setTimeout(() => {playerid.Kick();}, 10);
+            }
+            if (res[0]) {
+                players[playerid].isRegistered = true;
+            }
+        }); 
+    } catch (err) {
+        samp.SendClientMessage(playerid, darkRed, `[KICK] {${whiteWithoutHash}}Greska sa bazom podataka, molimo pokusajte kasnije!`);
+        setTimeout(() => {playerid.Kick();}, 10);
+    }
     return true;
 })
 
@@ -128,27 +135,55 @@ samp.OnPlayerClickTextDraw((playerid, clickedid) => {
             playerid.ShowPlayerDialog(registerDialogDrzava, samp.DIALOG_STYLE.LIST, "Drzava", "Bosna i Hercegovina\nHrvatska\nCrna gora\nKosovo\nSrbija", "Odaberi", "Izlaz");
             break;
         case RegisterTextDraws[8].TextDraw:
-            //Dodati verifikaciju podataka
-            try {
-                const {nickname, pass, email, pol, godine, drzava} = players[playerid];
-                const query = "INSERT INTO players(nickname, pass, email, pol, godine, selectedCountryId, createdAtCountryId) VALUES (?, ?, ?, ?, ?, ?, ?)"
-                database.query(query, [nickname, pass, email, pol, godine, drzava, drzava], (err, res) => {
-                    if (err) {
-                        console.log(err);
-                    }
-                    console.log(res);
-                })
-            } catch (err) {
-                console.log(err);
+            let isReadyForRegistration = false;
+            if (!(players[playerid].pass)) {
+                samp.SendClientMessage(playerid, darkGreen, `[Vertigo RPG] {${whiteWithoutHash}}Sifra mora sadrzavati najmanje 8 karaktera, a najvise 24!`);
+            } else if (!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(players[playerid].email))) {
+                samp.SendClientMessage(playerid, darkGreen, `[Vertigo RPG] {${whiteWithoutHash}}Uneseni email nije validan!`);
+            } else if (!(players[playerid].pol)) {
+                samp.SendClientMessage(playerid, darkGreen, `[Vertigo RPG] {${whiteWithoutHash}}Niste unijeli pol!`);
+            } else if (!(players[playerid].godine)) {
+                samp.SendClientMessage(playerid, darkGreen, `[Vertigo RPG] {${whiteWithoutHash}}Niste unijeli godine!`);
+            } else if (players[playerid].godine < 10 || players[playerid].godine > 80) {
+                samp.SendClientMessage(playerid, darkGreen, `[Vertigo RPG] {${whiteWithoutHash}}Ne mozete unijeti broj manji od 10 i veci od 80 za godine!`);
+            } else if (!(players[playerid].drzava)) {
+                samp.SendClientMessage(playerid, darkGreen, `[Vertigo RPG] {${whiteWithoutHash}}Niste unijeli drzavu!`);
+            } else {
+                isReadyForRegistration = true;
             }
-            players[playerid].isRegistered = true;
-            players[playerid].isLoggedIn = true;
-
-            RegisterTextDraws.forEach((TextDrawObject) => {
-                samp.TextDrawHideForPlayer(playerid, TextDrawObject.TextDraw);
-            });
-            samp.CancelSelectTextDraw(playerid);
-            playerid.SpawnPlayer();
+            if (isReadyForRegistration) {
+                try {
+                    const {nickname, pass, email, pol, godine, drzava} = players[playerid];
+                    const query = "INSERT INTO players(nickname, pass, email, pol, godine, selectedCountryId, createdAtCountryId) VALUES (?, ?, ?, ?, ?, ?, ?)"
+                    database.query(query, [nickname, pass, email, pol, godine, drzava, drzava], (err, res) => {
+                        if (err) {
+                            if (err.code == "ER_DUP_ENTRY") {
+                                samp.SendClientMessage(playerid, darkGreen, `[Vertigo RPG] {${whiteWithoutHash}}Uneseni email se vec koristi!`);
+                            } else {
+                                samp.SendClientMessage(playerid, darkRed, `[KICK] {${whiteWithoutHash}}Greska sa bazom podataka, molimo pokusajte kasnije!`);
+                                setTimeout(() => {playerid.Kick();}, 10);
+                            }
+                        } else {
+                            players[playerid].isRegistered = true;
+                            players[playerid].isLoggedIn = true;
+                
+                            RegisterTextDraws.forEach((TextDrawObject) => {
+                                samp.TextDrawHideForPlayer(playerid, TextDrawObject.TextDraw);
+                            });
+                            samp.CancelSelectTextDraw(playerid);
+                            for (let i = 0; i < 200; i++) {
+                                samp.SendClientMessage(playerid, white, "");
+                            }
+                            samp.SendClientMessage(playerid, white, `{${darkGreenWithoutHash}}[Vertigo RPG] {${whiteWithoutHash}}Hvala vam na registraciji, uzivajte u igri!`);
+                            playerid.SpawnPlayer();
+                        }
+                        //OVDE IDE TUTORIJAL
+                    })
+                } catch (err) {
+                    samp.SendClientMessage(playerid, darkRed, `[KICK] {${whiteWithoutHash}}Greska sa bazom podataka, molimo pokusajte kasnije!`);
+                    setTimeout(() => {playerid.Kick();}, 10);
+                }
+            }
             break;
         case RegisterTextDraws[9].TextDraw:
             playerid.Kick();
@@ -162,7 +197,7 @@ samp.OnDialogResponse((playerid, dialogid, response, listitem, inputtext) => {
     switch (dialogid) {
         case registerDialogPass:
             if (response) {
-                if (inputtext.length < 8 || inputtext > 24) {
+                if (inputtext.length < 8 || inputtext.length > 24) {
                     samp.SendClientMessage(playerid, darkGreen, `[Vertigo RPG] {${whiteWithoutHash}}Sifra mora sadrzavati najmanje 8 karaktera, a najvise 24!`);
                 } else {
                     players[playerid].pass = hash(inputtext);
@@ -233,14 +268,33 @@ samp.OnDialogResponse((playerid, dialogid, response, listitem, inputtext) => {
                 setTimeout(() => {playerid.Kick();}, 10);
             } else {
                 try {
-                    const query = "SELECT pass FROM players WHERE pass = ?";
+                    const query = "SELECT id FROM players WHERE pass = ?";
                     database.query(query, [hash(inputtext)], (err, res) => {
                         if (err) {
-                            console.log(err);
+                            samp.SendClientMessage(playerid, darkRed, `[KICK] {${whiteWithoutHash}}Greska sa bazom podataka, molimo pokusajte kasnije!`);
+                            setTimeout(() => {playerid.Kick();}, 10);
                         }
                         if (res[0]) {
                             players[playerid].isLoggedIn = true;
-                            playerid.SpawnPlayer();        
+                            try {
+                                const query = "SELECT email, pol, godine, selectedCountryId FROM players WHERE nickname = ?";
+                                database.query(query, [players[playerid].nickname], (err, res) => {
+                                    if (err) {
+                                        samp.SendClientMessage(playerid, darkRed, `[KICK] {${whiteWithoutHash}}Greska sa bazom podataka, molimo pokusajte kasnije!`);
+                                        setTimeout(() => {playerid.Kick();}, 10);
+                                    }
+                                    if (res[0]) {
+                                        players[playerid].email = res[0].email;
+                                        players[playerid].pol = res[0].pol;
+                                        players[playerid].godine = res[0].godine;
+                                        players[playerid].drzava = res[0].selectedCountryId;
+                                        playerid.SpawnPlayer();
+                                    }
+                                });
+                            } catch (err) {
+                                samp.SendClientMessage(playerid, darkRed, `[KICK] {${whiteWithoutHash}}Greska sa bazom podataka, molimo pokusajte kasnije!`);
+                                setTimeout(() => {playerid.Kick();}, 10);
+                            }
                         } else {
                             samp.SendClientMessage(playerid, darkGreen, `[Vertigo RPG] {${whiteWithoutHash}}Pogresna sifra, molimo pokusajte ponovo!`);
                             playerid.ShowPlayerDialog(loginDialog, samp.DIALOG_STYLE.PASSWORD, "Log in", `Dobrodosao {${whiteWithoutHash}}${players[playerid].nickname} {${dialogDefaultColorWithoutHash}}na {${darkGreenWithoutHash}}Vertigo RPG!\n{${dialogDefaultColorWithoutHash}}Molimo ukucajte vasu sifru`, "Unesi", "Izlaz");
@@ -252,7 +306,8 @@ samp.OnDialogResponse((playerid, dialogid, response, listitem, inputtext) => {
                         }
                     });
                 } catch (err) {
-                    console.log(err);
+                    samp.SendClientMessage(playerid, darkRed, `[KICK] {${whiteWithoutHash}}Greska sa bazom podataka, molimo pokusajte kasnije!`);
+                    setTimeout(() => {playerid.Kick();}, 10);
                 }
             }
             break;
