@@ -1682,6 +1682,14 @@
 			</param>
 			<library>file</library> 
 		</member>
+		<member name="M:Float:operator=(_:)" syntax="Float:operator=(_:)(oper)">
+			<tagname value="Float"/>
+			<attribute name="native"/>
+			<referrer name="_CreateDynamicPickup"/>
+			<param name="oper">
+			</param>
+			<library>float</library> 
+		</member>
 		<member name="M:operator==(Float:,Float:)" syntax="operator==(Float:,Float:)(oper1, oper2)">
 			<tagname value="bool"/>
 			<stacksize value="4"/>
@@ -1855,6 +1863,90 @@
 			<stacksize value="1"/>
 			<library>time</library>  <summary>A timer event occurred.</summary>  <remarks>  This function executes after the configured delay or interval expires.  See <c>settimer</c> to  set the delay or interval.  Depending on the timing precision of the host, the call may occur  later than the delay that was set.  <p/>  If the timer was set as a "single-shot", it must be ex plicitly set again for a next execution  for the <c>@timer</c>function.  If the timer is set to be repetitive, <c>@timer</c> will continue  to be called with the set interval until it is disabled with another call to <c>settimer</c>.  </remarks>  <returns>The return value of this function is currently ignored.</returns> 
 		</member>
+		<member name="M:CreateDynamic3DTextLabel" syntax="CreateDynamic3DTextLabel(text[], color, x, y, z, drawdistance, attachedplayer, attachedvehicle, testlos, worldid, interiorid, playerid, streamdistance, areaid, priority)">
+			<tagname value="Text3D"/>
+			<attribute name="native"/>
+			<referrer name="_CreateDynamic3DTextLabel"/>
+			<param name="text">
+				<paraminfo> [] </paraminfo>
+			</param>
+			<param name="color">
+			</param>
+			<param name="x">
+				<paraminfo>Float </paraminfo>
+			</param>
+			<param name="y">
+				<paraminfo>Float </paraminfo>
+			</param>
+			<param name="z">
+				<paraminfo>Float </paraminfo>
+			</param>
+			<param name="drawdistance">
+				<paraminfo>Float </paraminfo>
+			</param>
+			<param name="attachedplayer">
+			</param>
+			<param name="attachedvehicle">
+			</param>
+			<param name="testlos">
+			</param>
+			<param name="worldid">
+			</param>
+			<param name="interiorid">
+			</param>
+			<param name="playerid">
+			</param>
+			<param name="streamdistance">
+				<paraminfo>Float </paraminfo>
+			</param>
+			<param name="areaid">
+			</param>
+			<param name="priority">
+			</param>
+		</member>
+		<member name="M:CreateDynamicPickup" syntax="CreateDynamicPickup(modelid, type, x, y, z, worldid, interiorid, playerid, streamdistance, areaid, priority)">
+			<attribute name="native"/>
+			<referrer name="_CreateDynamicPickup"/>
+			<param name="modelid">
+			</param>
+			<param name="type">
+			</param>
+			<param name="x">
+				<paraminfo>Float </paraminfo>
+			</param>
+			<param name="y">
+				<paraminfo>Float </paraminfo>
+			</param>
+			<param name="z">
+				<paraminfo>Float </paraminfo>
+			</param>
+			<param name="worldid">
+			</param>
+			<param name="interiorid">
+			</param>
+			<param name="playerid">
+			</param>
+			<param name="streamdistance">
+				<paraminfo>Float </paraminfo>
+			</param>
+			<param name="areaid">
+			</param>
+			<param name="priority">
+			</param>
+		</member>
+		<member name="M:DestroyDynamic3DTextLabel" syntax="DestroyDynamic3DTextLabel(id)">
+			<attribute name="native"/>
+			<referrer name="_DestroyDynamic3DTextLabel"/>
+			<param name="id">
+				<paraminfo>Text3D </paraminfo>
+			</param>
+		</member>
+		<member name="M:DestroyDynamicPickup" syntax="DestroyDynamicPickup(pickupid)">
+			<attribute name="native"/>
+			<referrer name="_DestroyDynamicPickup"/>
+			<param name="pickupid">
+			</param>
+		</member>
 		<member name="M:GetCharFromPlayerNameAt" syntax="GetCharFromPlayerNameAt(playerid, index)">
 			<attribute name="public"/>
 			<stacksize value="29"/>
@@ -1924,6 +2016,19 @@
 			<param name="vehicleid">
 			</param>
 			<library>omp_vehicle</library> 
+		</member>
+		<member name="M:IsValidDynamic3DTextLabel" syntax="IsValidDynamic3DTextLabel(id)">
+			<attribute name="native"/>
+			<referrer name="_IsValidDynamic3DTextLabel"/>
+			<param name="id">
+				<paraminfo>Text3D </paraminfo>
+			</param>
+		</member>
+		<member name="M:IsValidDynamicPickup" syntax="IsValidDynamicPickup(pickupid)">
+			<attribute name="native"/>
+			<referrer name="_IsValidDynamicPickup"/>
+			<param name="pickupid">
+			</param>
 		</member>
 		<member name="M:IsVehicleHidden" syntax="IsVehicleHidden(vehicleid)">
 			<tagname value="bool"/>
@@ -3131,6 +3236,26 @@
 				<paraminfo> [] </paraminfo>
 			</param>
 		</member>
+		<member name="M:Streamer_Update" syntax="Streamer_Update(playerid, type)">
+			<attribute name="native"/>
+			<referrer name="_samp_Streamer_Update"/>
+			<param name="playerid">
+			</param>
+			<param name="type">
+			</param>
+		</member>
+		<member name="M:UpdateDynamic3DTextLabelText" syntax="UpdateDynamic3DTextLabelText(id, color, text[])">
+			<attribute name="native"/>
+			<referrer name="_UpdateDynamic3DTextLabelText"/>
+			<param name="id">
+				<paraminfo>Text3D </paraminfo>
+			</param>
+			<param name="color">
+			</param>
+			<param name="text">
+				<paraminfo> [] </paraminfo>
+			</param>
+		</member>
 		<member name="M:_@BULLET_HIT_TYPE" syntax="_@BULLET_HIT_TYPE()">
 			<tagname value="t_BULLET_HIT_TYPE"/>
 			<stacksize value="1"/>
@@ -3335,6 +3460,102 @@
 			<stacksize value="1"/>
 			<dependency name="seek_whence"/>
 		</member>
+		<member name="M:_CreateDynamic3DTextLabel" syntax="_CreateDynamic3DTextLabel(text[], color, x, y, z, drawdistance)">
+			<attribute name="public"/>
+			<stacksize value="17"/>
+			<dependency name="CreateDynamic3DTextLabel"/>
+			<param name="text">
+				<paraminfo> [] </paraminfo>
+			</param>
+			<param name="color">
+			</param>
+			<param name="x">
+				<paraminfo>Float </paraminfo>
+			</param>
+			<param name="y">
+				<paraminfo>Float </paraminfo>
+			</param>
+			<param name="z">
+				<paraminfo>Float </paraminfo>
+			</param>
+			<param name="drawdistance">
+				<paraminfo>Float </paraminfo>
+			</param>
+		</member>
+		<member name="M:_CreateDynamicPickup" syntax="_CreateDynamicPickup(modelid, type, x, y, z, worldid, interiorid, playerid, streamdistance, areaid, priority)">
+			<attribute name="public"/>
+			<stacksize value="13"/>
+			<dependency name="Float:operator=(_:)"/>
+			<dependency name="CreateDynamicPickup"/>
+			<param name="modelid">
+			</param>
+			<param name="type">
+			</param>
+			<param name="x">
+				<paraminfo>Float </paraminfo>
+			</param>
+			<param name="y">
+				<paraminfo>Float </paraminfo>
+			</param>
+			<param name="z">
+				<paraminfo>Float </paraminfo>
+			</param>
+			<param name="worldid">
+			</param>
+			<param name="interiorid">
+			</param>
+			<param name="playerid">
+			</param>
+			<param name="streamdistance">
+			</param>
+			<param name="areaid">
+			</param>
+			<param name="priority">
+			</param>
+		</member>
+		<member name="M:_DestroyDynamic3DTextLabel" syntax="_DestroyDynamic3DTextLabel(id)">
+			<attribute name="public"/>
+			<stacksize value="3"/>
+			<dependency name="DestroyDynamic3DTextLabel"/>
+			<param name="id">
+				<paraminfo>Text3D </paraminfo>
+			</param>
+		</member>
+		<member name="M:_DestroyDynamicPickup" syntax="_DestroyDynamicPickup(pickupid)">
+			<attribute name="public"/>
+			<stacksize value="3"/>
+			<dependency name="DestroyDynamicPickup"/>
+			<param name="pickupid">
+			</param>
+		</member>
+		<member name="M:_IsValidDynamic3DTextLabel" syntax="_IsValidDynamic3DTextLabel(id)">
+			<attribute name="public"/>
+			<stacksize value="3"/>
+			<dependency name="IsValidDynamic3DTextLabel"/>
+			<param name="id">
+				<paraminfo>Text3D </paraminfo>
+			</param>
+		</member>
+		<member name="M:_IsValidDynamicPickup" syntax="_IsValidDynamicPickup(pickupid)">
+			<attribute name="public"/>
+			<stacksize value="3"/>
+			<dependency name="IsValidDynamicPickup"/>
+			<param name="pickupid">
+			</param>
+		</member>
+		<member name="M:_UpdateDynamic3DTextLabelText" syntax="_UpdateDynamic3DTextLabelText(id, color, text[])">
+			<attribute name="public"/>
+			<stacksize value="5"/>
+			<dependency name="UpdateDynamic3DTextLabelText"/>
+			<param name="id">
+				<paraminfo>Text3D </paraminfo>
+			</param>
+			<param name="color">
+			</param>
+			<param name="text">
+				<paraminfo> [] </paraminfo>
+			</param>
+		</member>
 		<member name="M:__IsObjectNoCameraCol" syntax="__IsObjectNoCameraCol(objectid)">
 			<tagname value="bool"/>
 			<attribute name="native"/>
@@ -3370,6 +3591,13 @@
 				<paraminfo>bool </paraminfo>
 			</param>
 			<library>time</library> 
+		</member>
+		<member name="M:_samp_Streamer_Update" syntax="_samp_Streamer_Update(playerid)">
+			<attribute name="public"/>
+			<stacksize value="4"/>
+			<dependency name="Streamer_Update"/>
+			<param name="playerid">
+			</param>
 		</member>
 		<member name="M:clreol" syntax="clreol()">
 			<stacksize value="1"/>
